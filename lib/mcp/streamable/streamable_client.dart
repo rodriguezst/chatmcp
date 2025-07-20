@@ -122,7 +122,8 @@ class StreamableClient implements McpClient {
       headers['mcp-session-id'] = _sessionId!;
     }
 
-    // 如果有授权信息，可以在这里添加
+    // Add custom headers from server config
+    headers.addAll(serverConfig.headers);
 
     return headers;
   }

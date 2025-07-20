@@ -2,6 +2,7 @@ class ServerConfig {
   final String command;
   final List<String> args;
   final Map<String, String> env;
+  final Map<String, String> headers;
   final String author;
   final String type;
 
@@ -9,6 +10,7 @@ class ServerConfig {
     required this.command,
     required this.args,
     this.env = const {},
+    this.headers = const {},
     this.author = '',
     this.type = '',
   });
@@ -21,6 +23,9 @@ class ServerConfig {
       env: ((json['env'] ?? {}) as Map<String, dynamic>?)
               ?.cast<String, String>() ??
           const {},
+      headers: ((json['headers'] ?? {}) as Map<String, dynamic>?)
+              ?.cast<String, String>() ??
+          const {},
       type: json['type'] as String? ?? '',
     );
   }
@@ -31,6 +36,7 @@ class ServerConfig {
       'command': command,
       'args': args,
       'env': env,
+      'headers': headers,
       'author': author,
       'type': type,
     };

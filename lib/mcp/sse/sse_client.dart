@@ -48,6 +48,8 @@ class SSEClient implements McpClient {
   SSEClient({required ServerConfig serverConfig})
       : _serverConfig = serverConfig {
     _eventFlux = EventFlux.spawn();
+    // Add custom headers from server config
+    _headers.addAll(_serverConfig.headers);
   }
 
   @override
