@@ -555,6 +555,7 @@ class _McpServerState extends State<McpServer> {
           'command': '',
           'args': <String>[],
           'env': <String, String>{},
+          'headers': <String, String>{},
           'auto_approve': false,
         };
 
@@ -563,6 +564,7 @@ class _McpServerState extends State<McpServer> {
     String resultCommand = serverConfig['command']?.toString() ?? '';
     String resultArgs = (serverConfig['args'] as List<dynamic>?)?.map((e) => e.toString()).join(' ') ?? '';
     String resultEnv = (serverConfig['env'] as Map<String, dynamic>?)?.entries.map((e) => '${e.key}=${e.value}').join('\n') ?? '';
+    String resultHeaders = (serverConfig['headers'] as Map<String, dynamic>?)?.entries.map((e) => '${e.key}: ${e.value}').join('\n') ?? '';
     bool autoApprove = serverConfig['auto_approve'] as bool? ?? false;
 
     final formKey = GlobalKey<FormBuilderState>();
@@ -832,6 +834,46 @@ class _McpServerState extends State<McpServer> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    FormBuilderTextField(
+                      name: 'headers',
+                      initialValue: resultHeaders,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: 'Headers (for SSE/Streamable)',
+                        hintText: 'key: value\nAuthorization: Bearer your-token\nx-litellm-api-key: Bearer your-key',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withAlpha(102),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline.withAlpha(51),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline.withAlpha(51),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          CupertinoIcons.globe,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                     FormBuilderCheckbox(
                       name: 'auto_approve',
                       initialValue: autoApprove,
@@ -886,6 +928,7 @@ class _McpServerState extends State<McpServer> {
                   }
 
                   final envStr = values['env'] as String;
+                  final headersStr = values['headers'] as String? ?? '';
 
                   bool isRemote = type == 'sse' || type == 'streamable';
                   bool isUrl = isValidUrl(command.trim());
@@ -914,6 +957,20 @@ class _McpServerState extends State<McpServer> {
                     }),
                   );
 
+                  // Parse headers from key: value format
+                  final headers = Map<String, String>.fromEntries(
+                    headersStr.split('\n').where((line) => line.trim().isNotEmpty).map((line) {
+                      final parts = line.split(':');
+                      if (parts.length < 2) {
+                        return MapEntry(parts[0].trim(), '');
+                      }
+                      return MapEntry(
+                        parts[0].trim(),
+                        parts.sublist(1).join(':').trim(),
+                      );
+                    }),
+                  );
+
                   if (config['mcpServers'] == null) {
                     config['mcpServers'] = <String, dynamic>{};
                   }
@@ -924,6 +981,7 @@ class _McpServerState extends State<McpServer> {
                     'command': command,
                     'args': args,
                     'env': env,
+                    'headers': headers,
                     'auto_approve': values['auto_approve'] as bool? ?? false,
                   });
 
