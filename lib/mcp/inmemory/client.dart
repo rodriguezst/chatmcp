@@ -24,7 +24,7 @@ class InMemoryClient implements McpClient {
 
   @override
   Future<JSONRPCMessage> sendMessage(JSONRPCMessage message) async {
-    final result = server.onmessage(message);
+    final result = await server.onmessage(message);
     return result;
   }
 

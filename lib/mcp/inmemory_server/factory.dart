@@ -1,6 +1,7 @@
 import '../inmemory/memory_server.dart';
 import 'math.dart';
 import 'artifact_instructions.dart';
+import 'fetch_server.dart';
 import 'package:logging/logging.dart';
 
 class MemoryServerFactory {
@@ -11,6 +12,8 @@ class MemoryServerFactory {
         return ArtifactServer();
       case 'math':
         return MathServer();
+      case 'fetch':
+        return FetchServer();
       default:
         return null;
     }
