@@ -1,15 +1,11 @@
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:html2md/html2md.dart' as html2md;
-import 'dart:convert';
 
 import '../inmemory/memory_server.dart';
 import '../models/json_rpc_message.dart';
 
 class FetchServer extends MemoryServer {
-  static final Map<String, dynamic> _cache = {};
-  static const Duration _cacheTimeout = Duration(minutes: 5);
-
   FetchServer() : super(name: 'fetch-server') {
     addTool(Tool(
       name: 'fetch',
@@ -132,18 +128,18 @@ class FetchServer extends MemoryServer {
   }
 
   Future<Map<String, dynamic>> _fetchUrl(String url, bool raw, int maxLength, int startIndex) async {
+    http.Client? client;
     try {
-      final client = http.Client();
+      client = http.Client();
       
       // Set reasonable timeout and headers
       final response = await client.get(
         Uri.parse(url),
         headers: {
           'User-Agent': 'ChatMCP/1.0 (+https://github.com/rodriguezst/chatmcp)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
       ).timeout(Duration(seconds: 30));
-      
-      client.close();
       
       if (response.statusCode >= 400) {
         return {
@@ -198,6 +194,8 @@ class FetchServer extends MemoryServer {
       
     } catch (e) {
       return {'error': 'Failed to fetch $url: $e'};
+    } finally {
+      client?.close();
     }
   }
 

@@ -27,6 +27,14 @@ var defaultInMemoryServers = [
     'args': [],
     'tools': [],
   },
+  {
+    'name': 'Fetch',
+    'type': 'inmemory',
+    'command': 'fetch',
+    'env': {},
+    'args': [],
+    'tools': [],
+  },
 ];
 
 class McpServerProvider extends ChangeNotifier {
