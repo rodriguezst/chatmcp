@@ -265,7 +265,7 @@ class MathServer extends MemoryServer {
   }
 
   @override
-  Map<String, dynamic> onToolCall(JSONRPCMessage message) {
+  Future<Map<String, dynamic>> onToolCall(JSONRPCMessage message) async {
     try {
       String name = message.params?['name'];
 

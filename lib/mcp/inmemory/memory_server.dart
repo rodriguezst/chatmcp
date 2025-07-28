@@ -77,7 +77,7 @@ abstract class MemoryServer {
     List<Tool>? tools,
   }) : tools = tools ?? [];
 
-  JSONRPCMessage onmessage(JSONRPCMessage message) {
+  Future<JSONRPCMessage> onmessage(JSONRPCMessage message) async {
     var result = {};
     switch (message.method) {
       case 'initialize':
@@ -128,7 +128,7 @@ abstract class MemoryServer {
       case 'tools/call':
         Logger.root.fine('tools/call message: ${message.toJson()}');
         result = {
-          "content": onToolCall(message),
+          "content": await onToolCall(message),
         };
       case 'logging/setLevel':
         result = {};
@@ -154,5 +154,5 @@ abstract class MemoryServer {
     tools.add(tool);
   }
 
-  Map<String, dynamic> onToolCall(JSONRPCMessage message);
+  Future<Map<String, dynamic>> onToolCall(JSONRPCMessage message);
 }

@@ -24,7 +24,7 @@ class ArtifactServer extends MemoryServer {
   }
 
   @override
-  Map<String, dynamic> onToolCall(JSONRPCMessage message) {
+  Future<Map<String, dynamic>> onToolCall(JSONRPCMessage message) async {
     String name = message.params?['name'];
     Map<String, dynamic> arguments = message.params?['arguments'];
     Logger.root
