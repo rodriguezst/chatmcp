@@ -97,14 +97,37 @@ class FetchServer extends MemoryServer {
     try {
       client = http.Client();
       
-      // Set reasonable timeout and headers
-      final response = await client.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent': 'ChatMCP/1.0 (+https://github.com/rodriguezst/chatmcp)',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      ).timeout(Duration(seconds: 30));
+      http.Response? response;
+      
+      // Try with browser-like headers first to avoid bot detection
+      try {
+        response = await client.get(
+          Uri.parse(url),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+          },
+        ).timeout(Duration(seconds: 30));
+      } catch (e) {
+        // If that fails, try with minimal headers as fallback
+        Logger.root.warning('Failed with browser headers, trying with minimal headers: $e');
+        response = await client.get(
+          Uri.parse(url),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; ChatMCP/1.0)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        ).timeout(Duration(seconds: 30));
+      }
       
       if (response.statusCode >= 400) {
         return {
@@ -158,7 +181,20 @@ class FetchServer extends MemoryServer {
       };
       
     } catch (e) {
-      return {'error': 'Failed to fetch $url: $e'};
+      // Provide more specific error messages based on error type
+      String errorMessage = 'Failed to fetch $url: ';
+      if (e.toString().contains('ClientException')) {
+        errorMessage += 'Network connection failed. The site may be blocking requests or have connectivity issues.';
+      } else if (e.toString().contains('TimeoutException')) {
+        errorMessage += 'Request timed out after 30 seconds.';
+      } else if (e.toString().contains('HandshakeException')) {
+        errorMessage += 'SSL/TLS handshake failed. The site may have certificate issues.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage += 'Network socket error. Check your internet connection.';
+      } else {
+        errorMessage += e.toString();
+      }
+      return {'error': errorMessage};
     } finally {
       client?.close();
     }
