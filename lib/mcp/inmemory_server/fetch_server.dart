@@ -1,6 +1,7 @@
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:html2md/html2md.dart' as html2md;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../inmemory/memory_server.dart';
 import '../models/json_rpc_message.dart';
@@ -51,6 +52,15 @@ class FetchServer extends MemoryServer {
   }
 
   Future<Map<String, dynamic>> _handleFetch(Map<String, dynamic> arguments) async {
+    // Check if running on web platform - CORS limitations apply
+    if (kIsWeb) {
+      return {
+        'error': 'Fetch tool is not available when running in web browser due to CORS (Cross-Origin Resource Sharing) restrictions. '
+            'Web browsers block requests to external domains from client-side code for security reasons. '
+            'To use web content fetching, please run ChatMCP as a native desktop or mobile app instead of in a web browser.'
+      };
+    }
+
     // Validate required parameter
     if (!arguments.containsKey('url') || arguments['url'] == null) {
       return {'error': 'Missing required parameter: url'};
